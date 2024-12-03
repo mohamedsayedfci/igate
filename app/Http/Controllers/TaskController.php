@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Task;
 use Illuminate\Http\Request;
 
@@ -10,20 +12,16 @@ class TaskController extends Controller
 	// Get all tasks
 	public function index()
 	{
-		return response()->json(Task::all(), 200);
+		return  $this->sendResponse(Task::all());
 	}
 
 	// Create a new task
-	public function store(Request $request)
+	public function store(StoreTaskRequest $request)
 	{
-		$validated = $request->validate([
-			'title' => 'required|string|max:255',
-			'description' => 'nullable|string',
-			'status' => 'boolean',
-		]);
 
-		$task = Task::create($validated);
-		return response()->json($task, 201);
+		$task = Task::create($request->all());
+		return  $this->sendResponse($task,' Task  added successfully',201);
+
 	}
 
 	// Show a specific task
@@ -32,29 +30,28 @@ class TaskController extends Controller
 		$task = Task::find($id);
 
 		if (!$task) {
-			return response()->json(['error' => 'Task not found'], 404);
+			return $this->sendError('Task not found');
+
 		}
 
-		return response()->json($task, 200);
+		return  $this->sendResponse($task,' Task  successfully',201);
 	}
 
 	// Update a task
-	public function update(Request $request, $id)
+	public function update(UpdateTaskRequest $request, $id)
 	{
 		$task = Task::find($id);
 
 		if (!$task) {
-			return response()->json(['error' => 'Task not found'], 404);
+			return $this->sendError('Task not found');
+
 		}
 
-		$validated = $request->validate([
-			'title' => 'required|string|max:255',
-			'description' => 'nullable|string',
-			'status' => 'boolean',
-		]);
 
-		$task->update($validated);
-		return response()->json($task, 200);
+
+
+		$task->update($request->validate());
+		return  $this->sendResponse($task,' Task updated successfully',201);
 	}
 
 	// Delete a task
@@ -63,11 +60,12 @@ class TaskController extends Controller
 		$task = Task::find($id);
 
 		if (!$task) {
-			return response()->json(['error' => 'Task not found'], 404);
+			return $this->sendError('Task not found');
 		}
 
 		$task->delete();
-		return response()->json(['message' => 'Task deleted successfully'], 200);
+		return  $this->sendResponse(null,' Task deleted successfully',201);
+
 	}
 }
 
